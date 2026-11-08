@@ -1,12 +1,27 @@
 #include "task.h"
 #include "task_manager.h"
 #include <iostream>
-#include <string>
+#include <cassert>
 
-void print_tasks(Task* task_array, int task_count);
-int task_counter(const Task* task_array, int task_count);
+void test_add_task();
+void test_add_task_expansion();
+void test_add_task_empty_array();
 
 int main() {
+
+    test_add_task();
+    test_add_task_expansion(); 
+    test_add_task_empty_array();
+
+    std::cout << "All tests passed" << '\n';
+}
+
+
+/**
+ * @brief Проверяет добавление задачи при наличии свободного места в массиве.
+ * 
+ */
+void test_add_task() {
 
     int task_count = 2;
     int capacity = 3;
@@ -18,43 +33,102 @@ int main() {
 
     task_array = add_task(task_array, task_count, capacity, "Утечка данных", CRITICAL, IN_PROGRESS);
 
-    print_tasks(task_array, task_count);
+    assert(task_count == 3); // Проверка количества задач после добавления
+    assert(capacity == 3); // Проверка вместимости массива после добавления
 
-    int len_array = task_counter(task_array, task_count);
+    // Проверка сохранности ранее добавленных задач
+    assert(task_array[0].id == 1);
+    assert(task_array[0].title == "Залипание кнопки");
+    assert(task_array[0].priority == MEDIUM);
+    assert(task_array[0].status == OPEN);
 
-    std::cout << len_array << '\n';
+    assert(task_array[1].id == 2);
+    assert(task_array[1].title == "Ошибка проверки логина");
+    assert(task_array[1].priority == CRITICAL);
+    assert(task_array[1].status == IN_PROGRESS);
 
-    std::cout << "===========================" << '\n';
-    
-    task_array = add_task(task_array, task_count, capacity, "Неверный логотип в шапке", LOW, OPEN);
-
-    print_tasks(task_array, task_count);
-
-    len_array = task_counter(task_array, task_count);
-
-    std::cout << len_array << '\n';
+    // Проверка корректности добавленной задачи
+    assert(task_array[2].id == 3);
+    assert(task_array[2].title == "Утечка данных");
+    assert(task_array[2].priority == CRITICAL);
+    assert(task_array[2].status == IN_PROGRESS);
 
     delete[] task_array;
 }
 
-void print_tasks(Task* task_array, int task_count) {
-    for (int i = 0; i < task_count; i++)
-    {
-        std::cout << task_array[i].id << ' ' << task_array[i].title << ' ' << static_cast<Priority>(task_array[i].priority) << ' ' << static_cast<Status>(task_array[i].status) << '\n';
-    }
+/**
+ * @brief Проверяет расширение массива при отсутствии свободного места.
+ * 
+ */
+void test_add_task_expansion() {
+
+    int task_count = 3;
+    int capacity = 3;
+
+    Task* task_array = new Task[capacity]();
+
+    task_array[0] = {1, "Залипание кнопки", MEDIUM, OPEN};
+    task_array[1] = {2, "Ошибка проверки логина", CRITICAL, IN_PROGRESS};
+    task_array[2] = {3, "Неверный логотип", LOW, COMPLETED};
+
+    task_array = add_task(task_array, task_count, capacity, "Утечка данных", CRITICAL, IN_PROGRESS);
+
+    assert(task_count == 4); // Проверка количества задач после расширения массива
+    assert(capacity == 6); // Проверка новой вместимости массива
+
+    // Проверка сохранности ранее добавленных задач
+
+    // Проверка первой задачи
+    assert(task_array[0].id == 1);
+    assert(task_array[0].title == "Залипание кнопки");
+    assert(task_array[0].priority == MEDIUM);
+    assert(task_array[0].status == OPEN);
+    
+    // Проверка второй задачи
+    assert(task_array[1].id == 2);
+    assert(task_array[1].title == "Ошибка проверки логина");
+    assert(task_array[1].priority == CRITICAL);
+    assert(task_array[1].status == IN_PROGRESS);
+    
+    // Проверка третьей задачи
+    assert(task_array[2].id == 3);
+    assert(task_array[2].title == "Неверный логотип");
+    assert(task_array[2].priority == LOW);
+    assert(task_array[2].status == COMPLETED);
+
+    // Проверка корректности новой задачи
+    assert(task_array[3].id == 4);
+    assert(task_array[3].title == "Утечка данных");
+    assert(task_array[3].priority == CRITICAL);
+    assert(task_array[3].status == IN_PROGRESS);
+
+    delete[] task_array;
 }
 
-int task_counter(const Task* task_array, int task_count) {
+/**
+ * @brief Проверяет добавление первой задачи в массив с нулевой вместимостью.
+ * 
+ */
+void test_add_task_empty_array() {
 
-    int count{};
+    int task_count = 0;
+    int capacity = 0;
 
-    for (int i = 0; i < task_count; i++)
-    {
-        if (task_array[i].id != 0)
-        {
-            count++;
-        }
-    }
-    
-    return count;
+    Task* task_array = nullptr; // Создание пустого массива
+
+    task_array = add_task(task_array, task_count, capacity, "Проверка логина и пароля неисправна", CRITICAL, IN_PROGRESS);
+
+    // Проверка корректности указателя после выделения памяти
+    assert(task_array != nullptr);
+
+    assert(task_count == 1); // Проверка количества задач после добавления
+    assert(capacity == 1); // Проверка вместимости массива после добавления
+
+    // Проверка корректности добавленной задачи
+    assert(task_array[0].id == 1);
+    assert(task_array[0].title == "Проверка логина и пароля неисправна");
+    assert(task_array[0].priority == CRITICAL);
+    assert(task_array[0].status == IN_PROGRESS);
+
+    delete[] task_array;
 }
